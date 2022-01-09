@@ -1,0 +1,296 @@
+import { AWSError, DynamoDB } from 'aws-sdk';
+import { Condition, ConditionFunction, ConditionInitalizer } from 'dynamoose/dist/Condition';
+import { SortOrder } from 'dynamoose/dist/General';
+import { PopulateSettings } from 'dynamoose/dist/Populate';
+declare type OptionalOmit<T, K extends keyof any> = Pick<T, Exclude<keyof T, K>> & Partial<Pick<T, Extract<keyof T, K>>>;
+export declare type ObjectType = {
+    [key: string]: any;
+};
+export declare type CallbackType<R, E> = (error?: E | null, response?: R) => void;
+export interface DocumentArray<T> extends Array<T> {
+    populate(): Promise<DocumentArray<T>>;
+    toJSON(): ObjectType;
+}
+export interface DocumentRetrieverResponse<T> extends Array<T> {
+    lastKey?: ObjectType;
+    count: number;
+}
+export interface ScanResponse<T> extends DocumentRetrieverResponse<T> {
+    scannedCount: number;
+    timesScanned: number;
+}
+export interface QueryResponse<T> extends DocumentRetrieverResponse<T> {
+    queriedCount: number;
+    timesQueried: number;
+}
+export interface UnprocessedItems<T> {
+    unprocessedItems: T[];
+}
+export interface ModelGetSettings {
+    return?: 'document' | 'request';
+    attributes?: string[];
+    consistent?: boolean;
+}
+export interface ModelDeleteSettings {
+    return?: null | 'request';
+    condition?: Condition;
+}
+export interface ModelBatchPutSettings {
+    return?: 'response' | 'request';
+}
+export interface ModelUpdateSettings {
+    return?: 'document' | 'request';
+    condition?: Condition;
+    returnValues?: DynamoDB.ReturnValue;
+}
+export interface ModelBatchGetDocumentsResponse<T> extends DocumentArray<T> {
+    unprocessedKeys: ObjectType[];
+}
+export interface ModelBatchGetSettings {
+    return?: 'documents' | 'request';
+    attributes?: string[];
+}
+export interface ModelBatchDeleteSettings {
+    return?: 'response' | 'request';
+}
+export interface DocumentSaveSettings {
+    overwrite?: boolean;
+    return?: 'request' | 'document';
+}
+export declare type UpdatePartial<T> = Partial<T> | {
+    $SET: Partial<T>;
+} | {
+    $ADD: Partial<T>;
+} | {
+    $REMOVE: Partial<T>;
+};
+export interface SerializerOptions {
+    include?: string[];
+    exclude?: string[];
+    modify?: (serialized: ObjectType, original: ObjectType) => ObjectType;
+}
+export declare type Document<T> = {
+    populate(): Promise<Document<T>>;
+    populate(callback: CallbackType<Document<T>, AWSError>): void;
+    populate(settings: PopulateSettings): Promise<Document<T>>;
+    populate(settings: PopulateSettings, callback: CallbackType<Document<T>, AWSError>): void;
+    serialize(nameOrOptions: SerializerOptions | string): ObjectType;
+    toJSON(): ObjectType;
+    original(): ObjectType;
+} & T;
+export interface Model<Data, Key, DefaultFields extends keyof any = ''> {
+    query(condition?: ConditionInitalizer): Query<Document<Data>, Key>;
+    scan(condition?: ConditionInitalizer): Scan<Document<Data>, Key>;
+    batchGet(keys: Key[]): Promise<ModelBatchGetDocumentsResponse<Document<Data>>>;
+    batchGet(keys: Key[], callback: CallbackType<ModelBatchGetDocumentsResponse<Document<Data>>, AWSError>): void;
+    batchGet(keys: Key[], settings: ModelBatchGetSettings & {
+        return: 'documents';
+    }): Promise<ModelBatchGetDocumentsResponse<Document<Data>>>;
+    batchGet(keys: Key[], settings: ModelBatchGetSettings & {
+        return: 'documents';
+    }, callback: CallbackType<ModelBatchGetDocumentsResponse<Document<Data>>, AWSError>): void;
+    batchGet(keys: Key[], settings: ModelBatchGetSettings & {
+        return: 'request';
+    }): DynamoDB.BatchGetItemInput;
+    batchGet(keys: Key[], settings: ModelBatchGetSettings & {
+        return: 'request';
+    }, callback: CallbackType<DynamoDB.BatchGetItemInput, AWSError>): void;
+    batchPut(documents: OptionalOmit<Data, DefaultFields>[]): Promise<UnprocessedItems<Document<Data>>>;
+    batchPut(documents: OptionalOmit<Data, DefaultFields>[], callback: CallbackType<UnprocessedItems<Document<Data>>, AWSError>): void;
+    batchPut(documents: OptionalOmit<Data, DefaultFields>[], settings: ModelBatchPutSettings & {
+        return: 'request';
+    }): Promise<DynamoDB.BatchWriteItemInput>;
+    batchPut(documents: OptionalOmit<Data, DefaultFields>[], settings: ModelBatchPutSettings & {
+        return: 'request';
+    }, callback: CallbackType<DynamoDB.BatchWriteItemInput, AWSError>): void;
+    batchPut(documents: OptionalOmit<Data, DefaultFields>[], settings: ModelBatchPutSettings & {
+        return: 'response';
+    }): Promise<UnprocessedItems<Document<Data>>>;
+    batchPut(documents: OptionalOmit<Data, DefaultFields>[], settings: ModelBatchPutSettings & {
+        return: 'response';
+    }, callback: CallbackType<UnprocessedItems<Document<Data>>, AWSError>): void;
+    batchDelete(keys: Key[]): Promise<UnprocessedItems<Key>>;
+    batchDelete(keys: Key[], callback: CallbackType<UnprocessedItems<Key>, AWSError>): void;
+    batchDelete(keys: Key[], settings: ModelBatchDeleteSettings & {
+        return: 'response';
+    }): Promise<UnprocessedItems<Key>>;
+    batchDelete(keys: Key[], settings: ModelBatchDeleteSettings & {
+        return: 'response';
+    }, callback: CallbackType<UnprocessedItems<Key>, AWSError>): Promise<UnprocessedItems<Key>>;
+    batchDelete(keys: Key[], settings: ModelBatchDeleteSettings & {
+        return: 'request';
+    }): DynamoDB.BatchWriteItemInput;
+    batchDelete(keys: Key[], settings: ModelBatchDeleteSettings & {
+        return: 'request';
+    }, callback: CallbackType<DynamoDB.BatchWriteItemInput, AWSError>): void;
+    update(obj: Data): Promise<Document<Data>>;
+    update(obj: Data, callback: CallbackType<Document<Data>, AWSError>): void;
+    update(keyObj: Key, updateObj: UpdatePartial<Data>): Promise<Document<Data>>;
+    update(keyObj: Key, updateObj: UpdatePartial<Data>, callback: CallbackType<Document<Data>, AWSError>): void;
+    update(keyObj: Key, updateObj: UpdatePartial<Data>, settings: ModelUpdateSettings & {
+        return: 'document';
+    }): Promise<Document<Data>>;
+    update(keyObj: Key, updateObj: UpdatePartial<Data>, settings: ModelUpdateSettings & {
+        return: 'document';
+    }, callback: CallbackType<Document<Data>, AWSError>): void;
+    update(keyObj: Key, updateObj: UpdatePartial<Data>, settings: ModelUpdateSettings & {
+        return: 'request';
+    }): Promise<DynamoDB.UpdateItemInput>;
+    update(keyObj: Key, updateObj: UpdatePartial<Data>, settings: ModelUpdateSettings & {
+        return: 'request';
+    }, callback: CallbackType<DynamoDB.UpdateItemInput, AWSError>): void;
+    create(document: OptionalOmit<Data, DefaultFields>): Promise<Document<Data>>;
+    create(document: OptionalOmit<Data, DefaultFields>, callback: CallbackType<Document<Data>, AWSError>): void;
+    create(document: OptionalOmit<Data, DefaultFields>, settings: DocumentSaveSettings & {
+        return: 'request';
+    }): Promise<DynamoDB.PutItemInput>;
+    create(document: OptionalOmit<Data, DefaultFields>, settings: DocumentSaveSettings & {
+        return: 'request';
+    }, callback: CallbackType<DynamoDB.PutItemInput, AWSError>): void;
+    create(document: OptionalOmit<Data, DefaultFields>, settings: DocumentSaveSettings & {
+        return: 'document';
+    }): Promise<Document<Data>>;
+    create(document: OptionalOmit<Data, DefaultFields>, settings: DocumentSaveSettings & {
+        return: 'document';
+    }, callback: CallbackType<Document<Data>, AWSError>): void;
+    delete(key: Key): Promise<void>;
+    delete(key: Key, callback: CallbackType<void, AWSError>): void;
+    delete(key: Key, settings: ModelDeleteSettings & {
+        return: 'request';
+    }): DynamoDB.DeleteItemInput;
+    delete(key: Key, settings: ModelDeleteSettings & {
+        return: 'request';
+    }, callback: CallbackType<DynamoDB.DeleteItemInput, AWSError>): void;
+    delete(key: Key, settings: ModelDeleteSettings & {
+        return: null;
+    }): Promise<void>;
+    delete(key: Key, settings: ModelDeleteSettings & {
+        return: null;
+    }, callback: CallbackType<void, AWSError>): void;
+    get(key: Key): Promise<Document<Data>>;
+    get(key: Key, callback: CallbackType<Document<Data>, AWSError>): void;
+    get(key: Key, settings: ModelGetSettings & {
+        return: 'document';
+    }): Promise<Document<Data>>;
+    get(key: Key, settings: ModelGetSettings & {
+        return: 'document';
+    }, callback: CallbackType<Document<Data>, AWSError>): void;
+    get(key: Key, settings: ModelGetSettings & {
+        return: 'request';
+    }): DynamoDB.GetItemInput;
+    get(key: Key, settings: ModelGetSettings & {
+        return: 'request';
+    }, callback: CallbackType<DynamoDB.GetItemInput, AWSError>): void;
+    transaction: TransactionType<Data, Key>;
+    serializeMany(documentsArray: Data[], nameOrOptions: SerializerOptions | string): ObjectType[];
+}
+export interface BasicOperators<T> {
+    getRequest(): Promise<any>;
+    all(delay?: number, max?: number): T;
+    limit(value: number): T;
+    startAt(value: ObjectType): T;
+    attributes(value: string[]): T;
+    count(): T;
+    consistent(): T;
+    using(value: string): T;
+    and(): T;
+    or(): T;
+    not(): T;
+    parenthesis(value: Condition | ConditionFunction): T;
+    group(value: Condition | ConditionFunction): T;
+    where(key: string): T;
+    filter(key: string): T;
+    attribute(key: string): T;
+    eq(value: any): T;
+    lt(value: any): T;
+    le(value: any): T;
+    gt(value: any): T;
+    ge(value: any): T;
+    beginsWith(value: any): T;
+    contains(value: any): T;
+    exists(): T;
+    in(value: any): T;
+    between(...values: any[]): T;
+}
+export interface Query<Data, Key> extends BasicOperators<Query<Data, Key>> {
+    exec(): Promise<QueryResponse<Data>>;
+    exec(callback: CallbackType<QueryResponse<Data>, AWSError>): void;
+    sort(order: SortOrder): Query<Data, Key>;
+}
+export interface Scan<Data, Key> extends BasicOperators<Scan<Data, Key>> {
+    exec(): Promise<ScanResponse<Data>>;
+    exec(callback: CallbackType<ScanResponse<Data>, AWSError>): void;
+    parallel(value: number): Scan<Data, Key>;
+}
+export declare type GetTransactionInput = {
+    Get: DynamoDB.GetItemInput;
+};
+export declare type CreateTransactionInput = {
+    Put: DynamoDB.PutItemInput;
+};
+export declare type DeleteTransactionInput = {
+    Delete: DynamoDB.DeleteItemInput;
+};
+export declare type UpdateTransactionInput = {
+    Update: DynamoDB.UpdateItemInput;
+};
+export declare type ConditionTransactionInput = {
+    ConditionCheck: DynamoDB.ConditionCheck;
+};
+export declare type GetTransactionResult = Promise<GetTransactionInput>;
+export declare type CreateTransactionResult = Promise<CreateTransactionInput>;
+export declare type DeleteTransactionResult = Promise<DeleteTransactionInput>;
+export declare type UpdateTransactionResult = Promise<UpdateTransactionInput>;
+export declare type ConditionTransactionResult = Promise<ConditionTransactionInput>;
+export interface GetTransaction<Key> {
+    (key: Key): GetTransactionResult;
+    (key: Key, settings?: ModelGetSettings): GetTransactionResult;
+    (key: Key, settings: ModelGetSettings & {
+        return: 'document';
+    }): GetTransactionResult;
+    (key: Key, settings: ModelGetSettings & {
+        return: 'request';
+    }): GetTransactionResult;
+}
+export interface CreateTransaction<Data> {
+    (document: Partial<Data>): CreateTransactionResult;
+    (document: Partial<Data>, settings: DocumentSaveSettings & {
+        return: 'request';
+    }): CreateTransactionResult;
+    (document: Partial<Data>, settings: DocumentSaveSettings & {
+        return: 'document';
+    }): CreateTransactionResult;
+    (document: Partial<Data>, settings?: DocumentSaveSettings): CreateTransactionResult;
+}
+export interface DeleteTransaction<Key> {
+    (key: Key): DeleteTransactionResult;
+    (key: Key, settings: ModelDeleteSettings & {
+        return: 'request';
+    }): DeleteTransactionResult;
+    (key: Key, settings: ModelDeleteSettings & {
+        return: null;
+    }): DeleteTransactionResult;
+    (key: Key, settings?: ModelDeleteSettings): DeleteTransactionResult;
+}
+export interface UpdateTransaction<Key, Data> {
+    (obj: Data): UpdateTransactionResult;
+    (keyObj: Key, updateObj: UpdatePartial<Data>): UpdateTransactionResult;
+    (keyObj: Key, updateObj: UpdatePartial<Data>, settings: ModelUpdateSettings & {
+        return: 'document';
+    }): UpdateTransactionResult;
+    (keyObj: Key, updateObj: UpdatePartial<Data>, settings: ModelUpdateSettings & {
+        return: 'request';
+    }): UpdateTransactionResult;
+    (keyObj: Key, updateObj?: UpdatePartial<Data>, settings?: ModelUpdateSettings): UpdateTransactionResult;
+}
+export interface ConditionTransaction<Key> {
+    (key: Key, condition: Condition): ConditionTransactionResult;
+}
+declare type TransactionType<Data, Key> = {
+    get: GetTransaction<Data>;
+    create: CreateTransaction<Data>;
+    delete: DeleteTransaction<Key>;
+    update: UpdateTransaction<Key, Data>;
+    condition: ConditionTransaction<Key>;
+};
+export {};
